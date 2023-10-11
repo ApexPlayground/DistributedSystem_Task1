@@ -9,6 +9,7 @@
 #include <mpi.h>
 #include <string>
 #include <vector>
+#include  <iomanip>
 
 //Global variables
 const static int arraySize = 400;
@@ -108,47 +109,37 @@ int main(int argc, char** argv) {
 
 
     
-    // Initialize the array to hold data
-    float* grades = nullptr;
-    int localSize = 0;
+    // Task B: Node 0 reads the provided data file and scatters it to all nodes.
+    int localSize = arraySize / world_size; // Calculate the size of the local chunk for each node.
+    float* localGrades = new float[localSize]; // Create a dynamically allocated array to hold the local chunk of data.
 
-    //Node 0 reads from moduleGrades.txt
+    // Node 0 reads the data from the file and scatters it to all nodes.
     if (rank == 0) {
-        // Node 0 reads data from the file
-        
-        std::ifstream inputFile(argv[1]);
-
-        if (!inputFile.is_open()) {
-            std::cerr << "Failed to open the file." << std::endl;
-            MPI_Abort(MPI_COMM_WORLD, 1);
-        }
-
-        // Read the data from the file and store it in gradesArray
-        int i = 0;
-        while (i < arraySize && inputFile >> gradesArray[i]) {
-            i++;
-        }
-
-        // Determine the size of the data to be sent to each process
-        int dataSize = i;
-        localSize = dataSize / world_size;
-        if (rank == world_size - 1) {
-            // Adjust local size for the last process to include any remaining data
-            localSize = dataSize - (world_size - 1) * localSize;
-        }
-
-        // Allocate memory for the local grades array on Node 0
-        grades = new float[localSize];
-
-        // Scatter the data to all processes
-        MPI_Scatter(gradesArray, localSize, MPI_FLOAT, grades, localSize, MPI_FLOAT, 0, MPI_COMM_WORLD);
-
-        inputFile.close();
+        createData("moduleGrades.txt");
+        MPI_Scatter(gradesArray, localSize, MPI_FLOAT, localGrades, localSize, MPI_FLOAT, 0, MPI_COMM_WORLD);
     }
     else {
-        // Receive the data from Node 0
-        MPI_Scatter(nullptr, localSize, MPI_FLOAT, grades, localSize, MPI_FLOAT, 0, MPI_COMM_WORLD);
+        MPI_Scatter(NULL, 0, MPI_FLOAT, localGrades, localSize, MPI_FLOAT, 0, MPI_COMM_WORLD);
     }
+
+
+
+
+    //Task C
+    float nodeSum = sum(localGrades, localSize);
+    float nodeAvg = getAvg(nodeSum, localSize);
+    float nodeMax = getMax(localGrades, localSize);
+    float nodeMin = getMin(localGrades, localSize);
+
+    // Task D: Each node outputs its calculated values to console
+    std::cout << "Node " << rank << ":\n";
+    std::cout << "Highest grade: " << nodeMax << "\n";
+    std::cout << "lowest grade: " << nodeMin << "\n";
+    std::cout << "Average: " << std::fixed << std::setprecision(2) << nodeAvg << "\n";
+
+
+   
+
     MPI_Finalize();
 
     return 0;
