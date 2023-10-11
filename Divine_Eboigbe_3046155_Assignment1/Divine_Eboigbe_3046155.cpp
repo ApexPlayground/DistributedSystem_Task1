@@ -117,6 +117,9 @@ int main(int argc, char** argv) {
         createData("moduleGrades.txt");
     }
 
+    // Scatter data from Node 0 to all other nodes
+    MPI_Scatter(gradesArray, chunkSize, MPI_FLOAT, localGrades, chunkSize, MPI_FLOAT, 0, MPI_COMM_WORLD);
+
 
 
 
