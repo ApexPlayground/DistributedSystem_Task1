@@ -17,7 +17,7 @@ float gradesArray[arraySize];
 int rank;
 int world_size;
 
-//TODO: Complete these helper methods as detailed in specification
+
 // print array function
 void printArray(float* arrayValues, int arraySize) {
     for (int i = 0; i < arraySize; i++) {
@@ -110,30 +110,32 @@ int main(int argc, char** argv) {
 
     
     // Task B: Node 0 reads the provided data file and scatters it to all nodes.
-    int chunkSize = arraySize / world_size; // Calculate the size of the data chunk for each node.
-    float* localGrades = new float[chunkSize]; // Create a dynamically allocated array to hold the chunk/piece of data.
+    int dataChunkSize = arraySize / world_size; // Calculate the size of the data chunk for each node.
+    float* nodeDataValues = new float[dataChunkSize]; // Create a dynamically allocated array to hold the chunk/piece of data  for each node
 
+    //reads moduleGrades 
     if (rank == 0) {
         createData("moduleGrades.txt");
     }
 
     // Scatter data from Node 0 to all other nodes
-    MPI_Scatter(gradesArray, chunkSize, MPI_FLOAT, localGrades, chunkSize, MPI_FLOAT, 0, MPI_COMM_WORLD);
+    MPI_Scatter(gradesArray, dataChunkSize, MPI_FLOAT, nodeDataValues, dataChunkSize, MPI_FLOAT, 0, MPI_COMM_WORLD);
 
 
 
 
-    //Task C: 
-    float nodeSum = sum(localGrades, chunkSize);
-    float nodeAvg = getAvg(nodeSum, chunkSize);
-    float nodeMax = getMax(localGrades, chunkSize);
-    float nodeMin = getMin(localGrades, chunkSize);
+    //Task C: Helper methods perform calculation
+    float nodeSum = sum(nodeDataValues, dataChunkSize);
+    float nodeAvg = getAvg(nodeSum, dataChunkSize);
+    float nodeMax = getMax(nodeDataValues, dataChunkSize);
+    float nodeMin = getMin(nodeDataValues, dataChunkSize);
 
-    // Task D: Each node outputs its calculated values to console
+    // Task D: Each node outputs its calculated values 
     std::cout << "Node " << rank << ":\n";
     std::cout << "Highest grade: " << nodeMax << "\n";
     std::cout << "lowest grade: " << nodeMin << "\n";
     std::cout << "Average: " << std::fixed << std::setprecision(2) << nodeAvg << "\n";
+    std::cout << ' ';
 
     
    
