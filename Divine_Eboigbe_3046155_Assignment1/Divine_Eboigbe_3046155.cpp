@@ -109,17 +109,18 @@ int main(int argc, char** argv) {
 
 
     
-    // Task B: Node 0 reads the provided data file and scatters it to all nodes.
-    int dataChunkSize = arraySize / world_size; // Calculate the size of the data chunk for each node.
-    float* nodeDataValues = new float[dataChunkSize]; // Create a dynamically allocated array to hold the chunk/piece of data  for each node
+  
+    int dataChunkSize = arraySize / world_size; // Calculate the size of the data chunk for each node
+    float* nodeDataValues = new float[dataChunkSize]; // Create a dynamically allocated array to hold the chunk/piece of data for each node
 
-    //reads moduleGrades 
     if (rank == 0) {
+        // Node 0 reads the data and stores it into an array
         createData("moduleGrades.txt");
     }
 
-    // Scatter data from Node 0 to all other nodes
+    // Scatter data to all nodes, including Node 0
     MPI_Scatter(gradesArray, dataChunkSize, MPI_FLOAT, nodeDataValues, dataChunkSize, MPI_FLOAT, 0, MPI_COMM_WORLD);
+
 
 
 
@@ -135,7 +136,54 @@ int main(int argc, char** argv) {
     std::cout << "Highest grade: " << nodeMax << "\n";
     std::cout << "lowest grade: " << nodeMin << "\n";
     std::cout << "Average: " << std::fixed << std::setprecision(2) << nodeAvg << "\n";
-    std::cout << ' ';
+    
+
+    // Task E: Collect node averages on Node 1
+    float* nodeAvgArray = new float[world_size]; // Array to store node averages
+
+    // Use MPI_Gather to collect the node averages from all nodes on Node 1
+    MPI_Gather(&nodeAvg, 1, MPI_FLOAT, nodeAvgArray, 1, MPI_FLOAT, 1, MPI_COMM_WORLD);
+
+    float total_sum = 0;
+    float overall_avg = 0;
+
+    // Synchronize all nodes using MPI_Barrier
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    if (rank == 1) {
+        // Calculate the total sum of node averages
+        for (int i = 0; i < world_size; i++) {
+            total_sum += nodeAvgArray[i];
+        }
+        // Calculate overall average on Node 1
+        overall_avg = total_sum / world_size;
+    }
+
+    // Use MPI_Bcast to broadcast overall_avg from Node 1 to all nodes
+    MPI_Bcast(&overall_avg, 1, MPI_FLOAT, 1, MPI_COMM_WORLD);
+
+   
+    // Print rank and overall_avg
+    std::cout << "Node " << rank << ": Overall Average: " << std::fixed << std::setprecision(2) << overall_avg << "\n";
+
+
+
+    // Task F: Collect highest and lowest grades on Node 2
+  
+
+
+
+    std::cout << " ";
+    
+    
+
+
+
+
+
+
+
+
 
     
    
