@@ -110,26 +110,21 @@ int main(int argc, char** argv) {
 
     
     // Task B: Node 0 reads the provided data file and scatters it to all nodes.
-    int localSize = arraySize / world_size; // Calculate the size of the local chunk for each node.
-    float* localGrades = new float[localSize]; // Create a dynamically allocated array to hold the local chunk of data.
+    int chunkSize = arraySize / world_size; // Calculate the size of the data chunk for each node.
+    float* localGrades = new float[chunkSize]; // Create a dynamically allocated array to hold the chunk/piece of data.
 
-    // Node 0 reads the data from the file and scatters it to all nodes.
     if (rank == 0) {
         createData("moduleGrades.txt");
-        MPI_Scatter(gradesArray, localSize, MPI_FLOAT, localGrades, localSize, MPI_FLOAT, 0, MPI_COMM_WORLD);
-    }
-    else {
-        MPI_Scatter(NULL, 0, MPI_FLOAT, localGrades, localSize, MPI_FLOAT, 0, MPI_COMM_WORLD);
     }
 
 
 
 
-    //Task C
-    float nodeSum = sum(localGrades, localSize);
-    float nodeAvg = getAvg(nodeSum, localSize);
-    float nodeMax = getMax(localGrades, localSize);
-    float nodeMin = getMin(localGrades, localSize);
+    //Task C: 
+    float nodeSum = sum(localGrades, chunkSize);
+    float nodeAvg = getAvg(nodeSum, chunkSize);
+    float nodeMax = getMax(localGrades, chunkSize);
+    float nodeMin = getMin(localGrades, chunkSize);
 
     // Task D: Each node outputs its calculated values to console
     std::cout << "Node " << rank << ":\n";
@@ -137,7 +132,7 @@ int main(int argc, char** argv) {
     std::cout << "lowest grade: " << nodeMin << "\n";
     std::cout << "Average: " << std::fixed << std::setprecision(2) << nodeAvg << "\n";
 
-
+    
    
 
     MPI_Finalize();
