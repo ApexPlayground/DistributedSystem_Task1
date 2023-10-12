@@ -149,7 +149,7 @@ int main(int argc, char** argv) {
 
     // Synchronize all nodes using MPI_Barrier
     MPI_Barrier(MPI_COMM_WORLD);
-
+    
     if (rank == 1) {
         // Calculate the total sum of node averages
         for (int i = 0; i < world_size; i++) {
@@ -166,24 +166,28 @@ int main(int argc, char** argv) {
     // Print rank and overall_avg
     std::cout << "Node " << rank << ": Overall Average: " << std::fixed << std::setprecision(2) << overall_avg << "\n";
 
-    // Task F: Collect highest and lowest grades on Node 2, TODO Ask Jennifer on friday 
-    float max_grade = 0.0;
-    float min_grade = 100.0;
+    // Task F: Collect highest and lowest grades on Node 2
+// Define arrays to gather max and min grades from all nodes
+    float* max_grades = new float[world_size];
+    float* min_grades = new float[world_size];
 
-    // Use MPI_Gather to collect the highest grades from all nodes on Node 2
-    MPI_Gather(&nodeMax, 1, MPI_FLOAT, &max_grade, 1, MPI_FLOAT, 2, MPI_COMM_WORLD);
+    // Use MPI_Gather to collect the highest grades from all nodes
+    MPI_Gather(&nodeMax, 1, MPI_FLOAT, max_grades, 1, MPI_FLOAT, 2, MPI_COMM_WORLD);
 
-    // Use MPI_Gather to collect the lowest grades from all nodes on Node 2
-    MPI_Gather(&nodeMin, 1, MPI_FLOAT, &min_grade, 1, MPI_FLOAT, 2, MPI_COMM_WORLD);
+    // Use MPI_Gather to collect the lowest grades from all nodes
+    MPI_Gather(&nodeMin, 1, MPI_FLOAT, min_grades, 1, MPI_FLOAT, 2, MPI_COMM_WORLD);
 
     if (rank == 2) {
         // Calculate the overall highest grade and lowest grade
+        float max_grade = 0.0;
+        float min_grade = 100.0;
+
         for (int i = 0; i < world_size; ++i) {
-            if (max_grade < nodeMax) {
-                max_grade = nodeMax;
+            if (max_grade < max_grades[i]) {
+                max_grade = max_grades[i];
             }
-            if (min_grade > nodeMin) {
-                min_grade = nodeMin;
+            if (min_grade > min_grades[i]) {
+                min_grade = min_grades[i];
             }
         }
 
@@ -191,6 +195,14 @@ int main(int argc, char** argv) {
         std::cout << "Node 2: Overall Highest Grade: " << max_grade << "\n";
         std::cout << "Node 2: Overall Lowest Grade: " << min_grade << "\n";
     }
+
+    // Cleanup the dynamic arrays
+    delete[] max_grades;
+    delete[] min_grades;
+
+
+
+    //Task G
 
 
     std::cout << " ";
