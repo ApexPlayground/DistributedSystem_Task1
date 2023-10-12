@@ -161,6 +161,9 @@ int main(int argc, char** argv) {
 
     }
 
+    // Synchronize again to ensure Node 1 has calculated overall_avg before broadcasting
+    MPI_Barrier(MPI_COMM_WORLD);
+
     // Use MPI_Bcast to broadcast overall_avg from Node 1 to all nodes
     MPI_Bcast(&overall_avg, 1, MPI_FLOAT, 1, MPI_COMM_WORLD);
 
