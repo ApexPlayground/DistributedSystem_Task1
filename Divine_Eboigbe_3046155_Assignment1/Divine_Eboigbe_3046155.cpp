@@ -210,6 +210,7 @@ int main(int argc, char** argv) {
     delete[] min_grades;
 
 
+
     std::cout << " ";
     
     
