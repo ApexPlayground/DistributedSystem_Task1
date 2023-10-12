@@ -157,6 +157,8 @@ int main(int argc, char** argv) {
         }
         // Calculate overall average on Node 1
         overall_avg = total_sum / world_size;
+
+
     }
 
     // Use MPI_Bcast to broadcast overall_avg from Node 1 to all nodes
@@ -167,7 +169,7 @@ int main(int argc, char** argv) {
     std::cout << "Node " << rank << ": Overall Average: " << std::fixed << std::setprecision(2) << overall_avg << "\n";
 
     // Task F: Collect highest and lowest grades on Node 2
-// Define arrays to gather max and min grades from all nodes
+    // Define arrays to gather max and min grades from all nodes
     float* max_grades = new float[world_size];
     float* min_grades = new float[world_size];
 
@@ -196,13 +198,16 @@ int main(int argc, char** argv) {
         std::cout << "Node 2: Overall Lowest Grade: " << min_grade << "\n";
     }
 
-    // Cleanup the dynamic arrays
+    //clear memmory
+    
+
+
+
+    //Task G: clear memory 
+    delete[] nodeDataValues;
+    delete[] nodeAvgArray;
     delete[] max_grades;
     delete[] min_grades;
-
-
-
-    //Task G
 
 
     std::cout << " ";
