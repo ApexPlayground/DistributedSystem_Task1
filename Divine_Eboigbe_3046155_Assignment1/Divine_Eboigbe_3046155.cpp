@@ -166,11 +166,31 @@ int main(int argc, char** argv) {
     // Print rank and overall_avg
     std::cout << "Node " << rank << ": Overall Average: " << std::fixed << std::setprecision(2) << overall_avg << "\n";
 
+    // Task F: Collect highest and lowest grades on Node 2, TODO Ask Jennifer on friday 
+    float max_grade = 0.0;
+    float min_grade = 100.0;
 
+    // Use MPI_Gather to collect the highest grades from all nodes on Node 2
+    MPI_Gather(&nodeMax, 1, MPI_FLOAT, &max_grade, 1, MPI_FLOAT, 2, MPI_COMM_WORLD);
 
-    // Task F: Collect highest and lowest grades on Node 2
-  
+    // Use MPI_Gather to collect the lowest grades from all nodes on Node 2
+    MPI_Gather(&nodeMin, 1, MPI_FLOAT, &min_grade, 1, MPI_FLOAT, 2, MPI_COMM_WORLD);
 
+    if (rank == 2) {
+        // Calculate the overall highest grade and lowest grade
+        for (int i = 0; i < world_size; ++i) {
+            if (max_grade < nodeMax) {
+                max_grade = nodeMax;
+            }
+            if (min_grade > nodeMin) {
+                min_grade = nodeMin;
+            }
+        }
+
+        // Node 2 will have the overall highest (max_grade) and lowest (min_grade) values
+        std::cout << "Node 2: Overall Highest Grade: " << max_grade << "\n";
+        std::cout << "Node 2: Overall Lowest Grade: " << min_grade << "\n";
+    }
 
 
     std::cout << " ";
