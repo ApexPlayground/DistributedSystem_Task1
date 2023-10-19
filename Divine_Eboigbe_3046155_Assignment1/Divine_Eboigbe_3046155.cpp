@@ -210,7 +210,7 @@ int main(int argc, char** argv) {
 
     
     //Task G
-     MPI_Bcast(&overall_avg, 1, MPI_FLOAT, 1, MPI_COMM_WORLD);
+    MPI_Bcast(&overall_avg, 1, MPI_FLOAT, 1, MPI_COMM_WORLD);
     
 
     // Synchronize nodes 
