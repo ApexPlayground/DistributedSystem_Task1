@@ -16,6 +16,8 @@ const static int arraySize = 400;
 float gradesArray[arraySize];
 int rank;
 int world_size;
+double t1;
+double t2;
 
 
 // print array function
@@ -67,6 +69,7 @@ float getMin(float* arrayValues, int size) {
         // checks the index that is lesser than the first index at each iteration and assigns the lowest value to myMin
         if (arrayValues[i] < myMin) {
             myMin = arrayValues[i];
+            
         }
     }
     return myMin;
@@ -107,6 +110,7 @@ int main(int argc, char** argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
+    t1 = MPI_Wtime();
 
     
   
@@ -116,13 +120,16 @@ int main(int argc, char** argv) {
     if (rank == 0) {
         // Node 0 reads the data and stores it into an array
         createData("moduleGrades.txt");
+
+        double totalTime = t2 - t1;
+        std::cout << "execution time: " << totalTime << " seconds" << std::endl;
     }
 
     // Scatter data to all nodes, including Node 0
     MPI_Scatter(gradesArray, dataChunkSize, MPI_FLOAT, nodeDataValues, dataChunkSize, MPI_FLOAT, 0, MPI_COMM_WORLD);
 
-
-
+    // Synchronize all nodes 
+    MPI_Barrier(MPI_COMM_WORLD);
 
 
     //Task C: Helper methods perform calculation
@@ -138,40 +145,40 @@ int main(int argc, char** argv) {
     std::cout << "Average: " << std::fixed << std::setprecision(2) << nodeAvg << "\n";
     
 
+   
+
     // Task E: Collect node averages on Node 1
     float* nodeAvgArray = new float[world_size]; // Array to store node averages
 
     // Use MPI_Gather to collect the node averages from all nodes on Node 1
     MPI_Gather(&nodeAvg, 1, MPI_FLOAT, nodeAvgArray, 1, MPI_FLOAT, 1, MPI_COMM_WORLD);
 
+    // Synchronize all nodes using MPI_Barrier
+    MPI_Barrier(MPI_COMM_WORLD);
+
     float total_sum = 0;
     float overall_avg = 0;
 
-    // Synchronize all nodes using MPI_Barrier
-    MPI_Barrier(MPI_COMM_WORLD);
-    
+    // Calculate the total sum of node averages on Node 1
     if (rank == 1) {
-        // Calculate the total sum of node averages
         for (int i = 0; i < world_size; i++) {
             total_sum += nodeAvgArray[i];
         }
         // Calculate overall average on Node 1
         overall_avg = total_sum / world_size;
-
-
     }
 
-    // Synchronize again to ensure Node 1 has calculated overall_avg before broadcasting
+   
+
+    // Print rank and overall_avg for all nodes
+    std::cout << "Task E Node " << rank << ": Overall Average: " << std::fixed << std::setprecision(2) << overall_avg << "\n";
+
+    // Synchronize nodes again
     MPI_Barrier(MPI_COMM_WORLD);
 
-    // Use MPI_Bcast to broadcast overall_avg from Node 1 to all nodes
-    MPI_Bcast(&overall_avg, 1, MPI_FLOAT, 1, MPI_COMM_WORLD);
-
-   
-    // Print rank and overall_avg
-    std::cout << "Node " << rank << ": Overall Average: " << std::fixed << std::setprecision(2) << overall_avg << "\n";
 
     // Task F: Collect highest and lowest grades on Node 2
+
     // Define arrays to gather max and min grades from all nodes
     float* max_grades = new float[world_size];
     float* min_grades = new float[world_size];
@@ -201,12 +208,22 @@ int main(int argc, char** argv) {
         std::cout << "Node 2: Overall Lowest Grade: " << min_grade << "\n";
     }
 
-    //clear memmory
+    
+    //Task G
+     MPI_Bcast(&overall_avg, 1, MPI_FLOAT, 1, MPI_COMM_WORLD);
+    
+
+    // Synchronize nodes 
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    // Print rank and overall_avg for all nodes
+    std::cout << "Task G Node " << rank << ": Overall Average: " << std::fixed << std::setprecision(2) << overall_avg << "\n";
+
     
 
 
 
-    //Task G: clear memory 
+    //Task H: clear memory 
     delete[] nodeDataValues;
     delete[] nodeAvgArray;
     delete[] max_grades;
@@ -228,8 +245,11 @@ int main(int argc, char** argv) {
 
     
    
+    t2 = MPI_Wtime();
 
     MPI_Finalize();
+
+    
 
     return 0;
     //TODO: Complete tasks b to h in this method
