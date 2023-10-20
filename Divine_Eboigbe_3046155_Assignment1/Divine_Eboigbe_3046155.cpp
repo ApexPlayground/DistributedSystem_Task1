@@ -110,19 +110,20 @@ int main(int argc, char** argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    t1 = MPI_Wtime();
+    // t1 = MPI_Wtime();
 
     
-  
-    int dataChunkSize = arraySize / world_size; // Calculate the size of the data chunk for each node
-    float* nodeDataValues = new float[dataChunkSize]; // Create a dynamically allocated array to hold the chunk/piece of data for each node
+    // Calculate the size of the data chunk for each node
+    int dataChunkSize = arraySize / world_size; 
 
+    // Create anarray to hold the chunk/piece of data for each node
+    float* nodeDataValues = new float[dataChunkSize]; 
+
+    //Task B
     if (rank == 0) {
         // Node 0 reads the data and stores it into an array
-        createData("moduleGrades.txt");
-
-        double totalTime = t2 - t1;
-        std::cout << "execution time: " << totalTime << " seconds" << std::endl;
+        createData("moduleGradesBig.txt");
+      
     }
 
     // Scatter data to all nodes, including Node 0
@@ -154,7 +155,7 @@ int main(int argc, char** argv) {
     MPI_Gather(&nodeAvg, 1, MPI_FLOAT, nodeAvgArray, 1, MPI_FLOAT, 1, MPI_COMM_WORLD);
 
     // Synchronize all nodes using MPI_Barrier
-    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD);;
 
     float total_sum = 0;
     float overall_avg = 0;
@@ -168,13 +169,11 @@ int main(int argc, char** argv) {
         overall_avg = total_sum / world_size;
     }
 
-   
-
     // Print rank and overall_avg for all nodes
     std::cout << "Task E Node " << rank << ": Overall Average: " << std::fixed << std::setprecision(2) << overall_avg << "\n";
 
     // Synchronize nodes again
-    MPI_Barrier(MPI_COMM_WORLD);
+   MPI_Barrier(MPI_COMM_WORLD);
 
 
     // Task F: Collect highest and lowest grades on Node 2
@@ -233,19 +232,17 @@ int main(int argc, char** argv) {
 
     std::cout << " ";
     
-    
 
-
-
-
-
-
-
-
-
-    
    
-    t2 = MPI_Wtime();
+    //t2 = MPI_Wtime();
+
+    //double totaltime = t2 - t1;
+
+    //// Output time taken for each node
+   
+    //std::cout << "Node " << rank << " Execution Time: " << std::fixed << std::setprecision(6) << totaltime << " seconds" << std::endl;
+    //
+
 
     MPI_Finalize();
 
